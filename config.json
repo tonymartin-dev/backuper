@@ -1,0 +1,9 @@
+{
+    "source_dir": "/home/tork/Documentos/Proyectos",
+    "dest_dir": "./BACKUPS-TEST",
+    "log_dir": "./logs",
+    "excluded_dirs": [
+        "node_modules",
+        ".git"
+    ]
+}
