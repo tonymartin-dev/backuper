@@ -1,6 +1,9 @@
 const fs = require('fs')
 const stats = fs.lstatSync
-const cron = require("node-cron")
+const cron = require("node-cron");
+const { translateParams } = require('./utils');
+
+const args = process.argv.slice(2);
 
 let BACKUP_SRC
 let BACKUP_DEST
@@ -192,17 +195,31 @@ function folderExists(folderPath) {
   }
 }
 
-// ToDo: run script with params to decide whether it should run a cron or execute backup just once
-//cron.schedule('10 * * * * *', () => {
-now = new Date()
-console.log(`\n> [START BACKUP] ${now} \n`)
-getConfig()
-getLastBackupDate()
-getDeletedElements(BACKUP_DEST)
-getNewAndModifiedFiles(BACKUP_SRC)
-deleteElements()
-copyElements()
-// ToDo: control exceptions in order to complete the cycle and log completed actions
-createLog()
-console.log('[BACKUP SUCCEDEED]\n')
-//})
+const createBackup = () => {
+  now = new Date()
+  console.log(`\n> [START BACKUP] ${now} \n`)
+  getConfig()
+  getLastBackupDate()
+  getDeletedElements(BACKUP_DEST)
+  getNewAndModifiedFiles(BACKUP_SRC)
+  deleteElements()
+  copyElements()
+  // ToDo: control exceptions in order to complete the cycle and log completed actions
+  createLog()
+  console.log('[BACKUP SUCCEDEED]\n')
+}
+
+const setBackupPeriodically = () => {
+  cron.schedule('10 * * * * *', () => {
+    createBackup()
+  })
+}
+
+const cronStrings = translateParams(args)
+console.log('cronStrings', cronStrings)
+
+if(args && args.length){
+  //setBackupPeriodically()
+} else {
+  createBackup()
+}
