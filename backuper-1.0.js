@@ -54,35 +54,68 @@ function getLastBackupDate() {
   }
 }
 
-const getNewAndModifiedFiles = (folderPath) => {
+const getNewAndModifiedFiles = (srcFolderPath) => {
   console.log('\n\n > [SEARCHING FILES] Searching files modified after last backup')
-  // if (!fs.existsSync(BACKUP_SRC)) {
-  //   throw Error(`\n\n > [${BACKUP_SRC}] Folder doesn't exist\n`)
-  // }
-  console.log(' * Checking if directory exists: ', BACKUP_SRC)
+  
+  console.log(' * Checking if SRC directory exists: ', srcFolderPath)
   try {
-    fs.accessSync(BACKUP_SRC, fs.constants.R_OK | fs.constants.W_OK);
-    console.log(" * Directory exists.")
+    fs.accessSync(srcFolderPath, fs.constants.R_OK | fs.constants.W_OK);
+    console.log(" * SRC Directory exists.")
   } catch (err) {
-    console.log(" ! Directory does not exist.")
+    console.log(" ! SRC Directory does not exist.")
+    return
   }
 
-  const elements = fs.readdirSync(folderPath)
+  const elements = fs.readdirSync(srcFolderPath)
 
   elements.forEach(el => {
-    const elPath = `${folderPath}/${el}`
+    const elPath = `${srcFolderPath}/${el}`
 
     if (stats(elPath).isFile()) {
+      //Check if is new or has been recently modified
       const modifiedTime = stats(elPath).mtime
       const modifiedParsed = new Date(modifiedTime).getTime()
 
       if (lastBackupDateParsed - modifiedParsed <= 24 * 60 * 60 * 1000) {
         allFiles.push({ modifiedTime, elPath })
       }
-    } else if (stats(elPath).isDirectory() && !isExcluded(folderPath)) {
+
+    } else if (stats(elPath).isDirectory() && !isExcluded(srcFolderPath)) {
       getNewAndModifiedFiles(elPath)
     }
   })
+}
+
+const getDeletedFiles = (destFolderPath) => {
+  console.log('\n\n > [SEARCHING FILES] Searching deleted files')
+  
+  console.log(' * Checking if SRC directory exists: ', destFolderPath)
+  try {
+    fs.accessSync(destFolderPath, fs.constants.R_OK | fs.constants.W_OK);
+    console.log(" * SRC Directory exists.")
+  } catch (err) {
+    console.log(" ! SRC Directory does not exist.")
+    return
+  }
+
+  const elements = fs.readdirSync(destFolderPath)
+
+  elements.forEach(el => {
+    const destElementPath = `${destFolderPath}/${el}`
+    const srcElementPath = destElementPath.replace(BACKUP_DEST, BACKUP_SRC)
+
+    if(fs.existsSync(destElementPath) && !fs.existsSync(srcElementPath)){
+      
+      if (stats(destElementPath).isFile()) {
+        fs.unlinkSync(destElementPath)
+      } else {
+        fs.rmdirSync(destElementPath, { recursive: true });
+      }
+    } else if (stats(destElementPath).isDirectory()) {
+      getDeletedFiles(destElementPath)
+    }
+  })
+
 }
 
 function createLog() {
@@ -123,6 +156,7 @@ console.log(`\n> [START BACKUP] ${now} \n`)
 getConfig()
 getLastBackupDate()
 getNewAndModifiedFiles(BACKUP_SRC)
+getDeletedFiles(BACKUP_DEST)
 createLog()
 copyFiles()
 console.log('[BACKUP SUCCEDEED]\n')

@@ -1,6 +1,6 @@
 {
-    "source_dir": "/home/tork/Documentos/Proyectos",
-    "dest_dir": "./BACKUPS-TEST",
+    "source_dir": "./BACKUPS-TEST/src",
+    "dest_dir": "./BACKUPS-TEST/dest",
     "log_dir": "./logs",
     "excluded_dirs": [
         "node_modules",
