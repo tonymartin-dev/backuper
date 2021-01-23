@@ -11,7 +11,7 @@ let EXCLUDED_FOLDERS
 let now
 let lastBackupDate
 let lastBackupDateParsed
-const filesToCopy = []
+const elementsToCopy = []
 const elementsToDelete = []
 
 function isExcluded(folderPath) {
@@ -55,7 +55,7 @@ function getLastBackupDate() {
   }
 }
 
-const getNewAndModifiedFiles = (srcFolderPath) => {
+const getNewAndModifiedFiles = (srcFolderPath, folderModifiedParsed) => {
   console.log('\n\n > [SEARCHING FILES] Searching files modified after last backup')
   
   if(!folderExists(srcFolderPath)) {
@@ -64,20 +64,26 @@ const getNewAndModifiedFiles = (srcFolderPath) => {
  
   const elements = fs.readdirSync(srcFolderPath)
 
+  if(!elements || !elements.length){
+    console.log(`\n\n ! Empty folder: ${srcFolderPath}`)
+    elementsToCopy.push({ modifiedTime: folderModifiedParsed, elPath: srcFolderPath })
+    return
+  }
+
   elements.forEach(el => {
     const elPath = `${srcFolderPath}/${el}`
+    const modifiedTime = stats(elPath).mtime
+    const modifiedParsed = new Date(modifiedTime).getTime()
 
     if (stats(elPath).isFile()) {
-      const modifiedTime = stats(elPath).mtime
-      const modifiedParsed = new Date(modifiedTime).getTime()
 
       //if (lastBackupDateParsed - modifiedParsed <= 24 * 60 * 60 * 1000) {
       if (modifiedParsed >= lastBackupDateParsed) {
-        filesToCopy.push({ modifiedTime, elPath })
+        elementsToCopy.push({ modifiedTime, elPath })
       }
 
     } else if (stats(elPath).isDirectory() && !isExcluded(srcFolderPath)) {
-      getNewAndModifiedFiles(elPath)
+      getNewAndModifiedFiles(elPath, modifiedParsed)
     }
   })
 }
@@ -130,7 +136,7 @@ function createLog() {
   logFile.write(`${now.toString()} backup \n\n`)
   logFile.write('COPIED FILES:\n')
   logFile.write(
-    filesToCopy.map(f => `  *  ${f.modifiedTime} - ${f.elPath}`).join('\n')
+    elementsToCopy.map(f => `  *  ${f.modifiedTime} - ${f.elPath}`).join('\n')
   )
   logFile.write('\n\nDELETED FILES:\n')
   logFile.write(
@@ -139,18 +145,22 @@ function createLog() {
   logFile.end()
 }
 
-function copyFiles() {
+function copyElements() {
   console.log('\n\n > [COPY] Copying files...')
-  if(!filesToCopy.length){
+  if(!elementsToCopy.length){
     console.log('  * No elements to copy')
     return
   }
-  filesToCopy.forEach(({ elPath }) => {
+  elementsToCopy.forEach(({ elPath }) => {
     const destPath = elPath.replace(BACKUP_SRC, BACKUP_DEST)
-    const destFolder = getFileContainer(destPath)
-    console.log('  * ', `${elPath}  ==> ${destPath}`)
-    fs.mkdirSync(destFolder, { recursive: true })
-    fs.copyFileSync(elPath, destPath)
+    if(stats(elPath).isFile()){
+      const destFolder = getFileContainer(destPath)
+      console.log('  * ', `${elPath}  ==> ${destPath}`)
+      fs.mkdirSync(destFolder, { recursive: true })
+      fs.copyElementsync(elPath, destPath)
+    } else if (stats(elPath).isDirectory()) {
+      fs.mkdirSync(destPath, { recursive: true })
+    }
   })
 }
 
@@ -191,7 +201,7 @@ getLastBackupDate()
 getDeletedElements(BACKUP_DEST)
 getNewAndModifiedFiles(BACKUP_SRC)
 deleteElements()
-copyFiles()
+copyElements()
 // ToDo: control exceptions in order to complete the cycle and log completed actions
 createLog()
 console.log('[BACKUP SUCCEDEED]\n')
