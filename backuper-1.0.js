@@ -87,7 +87,7 @@ const getNewAndModifiedFiles = (srcFolderPath) => {
   })
 }
 
-const getDeletedFiles = (destFolderPath) => {
+const getDeletedElements = (destFolderPath) => {
   console.log('\n\n > [SEARCHING FILES] Searching deleted files')
   
   console.log(' * Checking if SRC directory exists: ', destFolderPath)
@@ -105,10 +105,18 @@ const getDeletedFiles = (destFolderPath) => {
     const destElementPath = `${destFolderPath}/${el}`
     const srcElementPath = destElementPath.replace(BACKUP_DEST, BACKUP_SRC)
 
-    if(fs.existsSync(destElementPath) && !fs.existsSync(srcElementPath)){
+    if(
+      (fs.existsSync(destElementPath) && !fs.existsSync(srcElementPath)) ||
+      (stats(destElementPath).isDirectory() && !stats(srcElementPath).isDirectory()) ||
+      (!stats(destElementPath).isDirectory() && stats(srcElementPath).isDirectory())
+    ){
+
       elementsToDelete.push(destElementPath)
+
     } else if (stats(destElementPath).isDirectory()) {
-      getDeletedFiles(destElementPath)
+
+      getDeletedElements(destElementPath)
+      
     }
   })
 
@@ -168,7 +176,7 @@ now = new Date()
 console.log(`\n> [START BACKUP] ${now} \n`)
 getConfig()
 getLastBackupDate()
-getDeletedFiles(BACKUP_DEST)
+getDeletedElements(BACKUP_DEST)
 getNewAndModifiedFiles(BACKUP_SRC)
 deleteElements()
 copyFiles()
