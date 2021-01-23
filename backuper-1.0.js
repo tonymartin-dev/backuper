@@ -129,13 +129,14 @@ function createLog() {
 
   const logFile = fs.createWriteStream(`${logFolder}/${timeString}.txt`)
   logFile.on('error', e => console.log(' ! ERROR CREATING LOG FILE ! ', e))
+  logFile.write(`${now.toString()} backup \n\n`)
   logFile.write('COPIED FILES:\n')
   logFile.write(
-    filesToCopy.map(f => `${f.modifiedTime} - ${f.elPath}`).join('\n')
+    filesToCopy.map(f => `  *  ${f.modifiedTime} - ${f.elPath}`).join('\n')
   )
-  logFile.write('\nDELETED FILES:\n')
+  logFile.write('\n\nDELETED FILES:\n')
   logFile.write(
-    elementsToDelete.join('\n')
+    elementsToDelete.map(e => `  *  ${e}`).join('\n')
   ) 
   logFile.end()
 }
@@ -161,15 +162,16 @@ function deleteElements() {
   })
 }
 
+// ToDo: run script with params to decide whether it should run a cron or execute backup just once
 //cron.schedule('10 * * * * *', () => {
 now = new Date()
 console.log(`\n> [START BACKUP] ${now} \n`)
 getConfig()
 getLastBackupDate()
-getNewAndModifiedFiles(BACKUP_SRC)
 getDeletedFiles(BACKUP_DEST)
-copyFiles()
+getNewAndModifiedFiles(BACKUP_SRC)
 deleteElements()
+copyFiles()
 // ToDo: control exceptions in order to complete the cycle and log completed actions
 createLog()
 console.log('[BACKUP SUCCEDEED]\n')
