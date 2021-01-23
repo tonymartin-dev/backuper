@@ -11,7 +11,8 @@ let EXCLUDED_FOLDERS
 let now
 let lastBackupDate
 let lastBackupDateParsed
-const allFiles = []
+const filesToCopy = []
+const elementsToDelete = []
 
 function isExcluded(folderPath) {
   return EXCLUDED_FOLDERS.some(ef => folderPath.includes(ef))
@@ -77,7 +78,7 @@ const getNewAndModifiedFiles = (srcFolderPath) => {
       const modifiedParsed = new Date(modifiedTime).getTime()
 
       if (lastBackupDateParsed - modifiedParsed <= 24 * 60 * 60 * 1000) {
-        allFiles.push({ modifiedTime, elPath })
+        filesToCopy.push({ modifiedTime, elPath })
       }
 
     } else if (stats(elPath).isDirectory() && !isExcluded(srcFolderPath)) {
@@ -105,12 +106,7 @@ const getDeletedFiles = (destFolderPath) => {
     const srcElementPath = destElementPath.replace(BACKUP_DEST, BACKUP_SRC)
 
     if(fs.existsSync(destElementPath) && !fs.existsSync(srcElementPath)){
-      
-      if (stats(destElementPath).isFile()) {
-        fs.unlinkSync(destElementPath)
-      } else {
-        fs.rmdirSync(destElementPath, { recursive: true });
-      }
+      elementsToDelete.push(destElementPath)
     } else if (stats(destElementPath).isDirectory()) {
       getDeletedFiles(destElementPath)
     }
@@ -133,20 +129,35 @@ function createLog() {
 
   const logFile = fs.createWriteStream(`${logFolder}/${timeString}.txt`)
   logFile.on('error', e => console.log(' ! ERROR CREATING LOG FILE ! ', e))
+  logFile.write('COPIED FILES:\n')
   logFile.write(
-    allFiles.map(f => `${f.modifiedTime} - ${f.elPath}`).join('\n')
+    filesToCopy.map(f => `${f.modifiedTime} - ${f.elPath}`).join('\n')
   )
+  logFile.write('\nDELETED FILES:\n')
+  logFile.write(
+    elementsToDelete.join('\n')
+  ) 
   logFile.end()
 }
 
 function copyFiles() {
   console.log(' > [COPY] Copying files...')
-  allFiles.forEach(({ elPath }) => {
+  filesToCopy.forEach(({ elPath }) => {
     const destPath = elPath.replace(BACKUP_SRC, BACKUP_DEST)
     const destFolder = getFileContainer(destPath)
     console.log('DEST', destFolder)
     fs.mkdirSync(destFolder, { recursive: true })
     fs.copyFileSync(elPath, destPath)
+  })
+}
+
+function deleteElements() {
+  elementsToDelete.forEach(destElementPath => {
+    if (stats(destElementPath).isFile()) {
+      fs.unlinkSync(destElementPath)
+    } else {
+      fs.rmdirSync(destElementPath, { recursive: true });
+    }
   })
 }
 
@@ -157,7 +168,9 @@ getConfig()
 getLastBackupDate()
 getNewAndModifiedFiles(BACKUP_SRC)
 getDeletedFiles(BACKUP_DEST)
-createLog()
 copyFiles()
+deleteElements()
+// ToDo: control exceptions in order to complete the cycle and log completed actions
+createLog()
 console.log('[BACKUP SUCCEDEED]\n')
 //})
