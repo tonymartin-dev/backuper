@@ -58,26 +58,21 @@ function getLastBackupDate() {
 const getNewAndModifiedFiles = (srcFolderPath) => {
   console.log('\n\n > [SEARCHING FILES] Searching files modified after last backup')
   
-  console.log(' * Checking if SRC directory exists: ', srcFolderPath)
-  try {
-    fs.accessSync(srcFolderPath, fs.constants.R_OK | fs.constants.W_OK);
-    console.log(" * SRC Directory exists.")
-  } catch (err) {
-    console.log(" ! SRC Directory does not exist.")
+  if(!folderExists(srcFolderPath)) {
     return
   }
-
+ 
   const elements = fs.readdirSync(srcFolderPath)
 
   elements.forEach(el => {
     const elPath = `${srcFolderPath}/${el}`
 
     if (stats(elPath).isFile()) {
-      //Check if is new or has been recently modified
       const modifiedTime = stats(elPath).mtime
       const modifiedParsed = new Date(modifiedTime).getTime()
 
-      if (lastBackupDateParsed - modifiedParsed <= 24 * 60 * 60 * 1000) {
+      //if (lastBackupDateParsed - modifiedParsed <= 24 * 60 * 60 * 1000) {
+      if (modifiedParsed >= lastBackupDateParsed) {
         filesToCopy.push({ modifiedTime, elPath })
       }
 
@@ -90,12 +85,7 @@ const getNewAndModifiedFiles = (srcFolderPath) => {
 const getDeletedElements = (destFolderPath) => {
   console.log('\n\n > [SEARCHING FILES] Searching deleted files')
   
-  console.log(' * Checking if SRC directory exists: ', destFolderPath)
-  try {
-    fs.accessSync(destFolderPath, fs.constants.R_OK | fs.constants.W_OK);
-    console.log(" * SRC Directory exists.")
-  } catch (err) {
-    console.log(" ! SRC Directory does not exist.")
+  if(!folderExists(destFolderPath)) {
     return
   }
 
@@ -116,7 +106,7 @@ const getDeletedElements = (destFolderPath) => {
     } else if (stats(destElementPath).isDirectory()) {
 
       getDeletedElements(destElementPath)
-      
+
     }
   })
 
@@ -150,24 +140,46 @@ function createLog() {
 }
 
 function copyFiles() {
-  console.log(' > [COPY] Copying files...')
+  console.log('\n\n > [COPY] Copying files...')
+  if(!filesToCopy.length){
+    console.log('  * No elements to copy')
+    return
+  }
   filesToCopy.forEach(({ elPath }) => {
     const destPath = elPath.replace(BACKUP_SRC, BACKUP_DEST)
     const destFolder = getFileContainer(destPath)
-    console.log('DEST', destFolder)
+    console.log('  * ', `${elPath}  ==> ${destPath}`)
     fs.mkdirSync(destFolder, { recursive: true })
     fs.copyFileSync(elPath, destPath)
   })
 }
 
 function deleteElements() {
+  console.log('\n\n > [DELETE] Deleting elements...')
+  if(!elementsToDelete.length){
+    console.log('  * No elements to delete')
+    return
+  }
   elementsToDelete.forEach(destElementPath => {
+    console.log('  * ', destElementPath)
     if (stats(destElementPath).isFile()) {
       fs.unlinkSync(destElementPath)
     } else {
       fs.rmdirSync(destElementPath, { recursive: true });
     }
   })
+}
+
+function folderExists(folderPath) {
+  console.log('  * Checking if SRC directory exists: ', folderPath)
+  try {
+    fs.accessSync(folderPath, fs.constants.R_OK | fs.constants.W_OK);
+    console.log("  * SRC Directory exists.")
+    return true
+  } catch (err) {
+    console.log("  ! SRC Directory does not exist.")
+    return
+  }
 }
 
 // ToDo: run script with params to decide whether it should run a cron or execute backup just once
