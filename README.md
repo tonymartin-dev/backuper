@@ -35,7 +35,7 @@ $ npm install
 
 - log_dir: folder where **Backuper** will create text files with each backup process information.
 
-- excluded_dirs
+- excluded_dirs: list of diretories which will be ignored during the backup process.
 
 ## Usage
 
