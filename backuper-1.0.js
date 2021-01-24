@@ -17,11 +17,11 @@ let lastBackupDateParsed
 const elementsToCopy = []
 const elementsToDelete = []
 
-function isExcluded(folderPath) {
+const isExcluded = (folderPath) => {
   return EXCLUDED_FOLDERS.some(ef => folderPath.includes(ef))
 }
 
-function getConfig() {
+const getConfig = () => {
   const configBuffer = fs.readFileSync('./config.json')
   const config = JSON.parse(configBuffer)
   BACKUP_SRC = config.source_dir
@@ -38,13 +38,13 @@ function getConfig() {
   })
 }
 
-function getFileContainer(filePath) {
+const getFileContainer = (filePath) => {
   const pathArray = filePath.split('/')
   pathArray.pop()
   return pathArray.join('/')
 }
 
-function getLastBackupDate() {
+const getLastBackupDate = () => {
   try {
     if (fs.existsSync(LAST_BCKP_FILE)) {
       lastBackupDate = fs.readFileSync(LAST_BCKP_FILE, { encoding: 'utf8', flag: 'r' })
@@ -121,7 +121,7 @@ const getDeletedElements = (destFolderPath) => {
 
 }
 
-function createLog() {
+const createLog = () => {
   const dateString = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`
   const timeString = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
   const logFolder = `${LOG_FOLDER}/${dateString}`
@@ -148,7 +148,7 @@ function createLog() {
   logFile.end()
 }
 
-function copyElements() {
+const copyElements = () => {
   console.log('\n\n > [COPY] Copying files...')
   if(!elementsToCopy.length){
     console.log('  * No elements to copy')
@@ -167,7 +167,7 @@ function copyElements() {
   })
 }
 
-function deleteElements() {
+const deleteElements = () => {
   console.log('\n\n > [DELETE] Deleting elements...')
   if(!elementsToDelete.length){
     console.log('  * No elements to delete')
@@ -183,7 +183,7 @@ function deleteElements() {
   })
 }
 
-function folderExists(folderPath) {
+const folderExists = (folderPath) => {
   console.log('  * Checking if SRC directory exists: ', folderPath)
   try {
     fs.accessSync(folderPath, fs.constants.R_OK | fs.constants.W_OK);

@@ -1,6 +1,4 @@
-
-
-function getParams(args) {
+const getParams = (args) => {
     const params = {}
     args.forEach(arg => {
         const argArray = arg.replace('--', '').split('=')
@@ -10,7 +8,7 @@ function getParams(args) {
     return params
 }
 
-function translateParams(args) {
+const translateParams = (args) => {
     const params = getParams(args)
 
     if(params.cron){
