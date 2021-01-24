@@ -1,7 +1,10 @@
 const fs = require('fs')
 const stats = fs.lstatSync
 const cron = require("node-cron");
-const { translateParams } = require('./utils');
+const { 
+  translateParams,  
+  getFileContainer, 
+ } = require('./utils');
 
 const args = process.argv.slice(2);
 
@@ -36,12 +39,6 @@ const getConfig = () => {
     LAST_BCKP_FILE,
     EXCLUDED_FOLDERS
   })
-}
-
-const getFileContainer = (filePath) => {
-  const pathArray = filePath.split('/')
-  pathArray.pop()
-  return pathArray.join('/')
 }
 
 const getLastBackupDate = () => {
@@ -215,7 +212,6 @@ const setBackupPeriodically = (cronString) => {
     createBackup()
   })
 }
-
 
 if(args && args.length){
   const cronString = translateParams(args)

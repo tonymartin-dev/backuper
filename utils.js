@@ -32,5 +32,11 @@ const translateParams = (args) => {
     
 }
 
+const getFileContainer = (filePath) => {
+    const pathArray = filePath.split('/')
+    pathArray.pop()
+    return pathArray.join('/')
+}
 
 exports.translateParams = translateParams
+exports.getFileContainer = getFileContainer
