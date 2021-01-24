@@ -209,17 +209,17 @@ const createBackup = () => {
   console.log('[BACKUP SUCCEDEED]\n')
 }
 
-const setBackupPeriodically = () => {
-  cron.schedule('10 * * * * *', () => {
+const setBackupPeriodically = (cronString) => {
+  console.log('  > [SET BACKUP PERIOD] ', cronString)
+  cron.schedule(cronString, () => {
     createBackup()
   })
 }
 
-const cronStrings = translateParams(args)
-console.log('cronStrings', cronStrings)
 
 if(args && args.length){
-  //setBackupPeriodically()
+  const cronString = translateParams(args)
+  setBackupPeriodically(cronString)
 } else {
   createBackup()
 }

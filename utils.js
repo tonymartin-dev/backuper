@@ -15,15 +15,21 @@ function translateParams(args) {
 
     if(params.cron){
         return params.cron
-    } else if (params.at){
-
-    } else if (params.every) {
+    } else if (params.every){
+        const sec = params.seconds ? `*/${params.seconds} ` : '* '
+        const min = params.minutes ? `*/${params.minutes} ` : '* '
+        const hrs = params.hours ? `*/${params.hours} ` : '* '
+        const days = params.days ? `*/${params.days} ` : '* '
+        const months = params.months ? `*/${params.months} ` : '* '
+        const wkd = params.weekDay ? `*/${params.weekDay} ` : '* '
+        return sec + min + hrs + days + months + wkd
+    } else if (params.at) {
         return `${params.seconds || '*'} ` +
             `${params.minutes || '*'} ` + 
             `${params.hours || '*'} ` + 
             `${params.days || '*'} ` +
             `${params.months || '*'} ` +
-            `${params.dayName || '*'}` 
+            `${params.weekDay || '*'}` 
     }
     
 }

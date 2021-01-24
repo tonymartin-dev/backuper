@@ -18,7 +18,7 @@ If you have no experience with NodeJs, you might reconsider using this tool. But
 
 ### Install dependencies
 
-The first step is to download this repo in your PC or server, and then go to repos folder and install required dependencies running this command:
+The first step is to download this repo in your PC or server, and then go to repo's folder and install required dependencies running this command:
 
 ```bash
 $ npm install
@@ -69,13 +69,12 @@ This params will configure the interval duration or milestones.
 
 |  Name      |  Value  |
 |------------|---------|
-| --seconds  | number  |
-| --minutes  | number  |
-| --hours    | number  |
-| --days     | number  |
-| --months   | number  |
-| --dayName  | Moday, Tuesday, ... |
-| --monthName| January, February, ... |
+| --seconds  | 0-59    |
+| --minutes  | 0-59    |
+| --hours    | 0-23    |
+| --days     | 0-31    |
+| --months   | 1-12 or name (January, February, ...)  |
+| --weekDay  | 0-7 (0 and 7 = sunday) or name (Moday, Tuesday, ...) |
 ---
 
 ### cron
