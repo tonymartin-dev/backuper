@@ -1,6 +1,6 @@
 # Backuper
 
-> **Disclaimer**: this tool has been developed as an personal experiment. I'm learning new technologies and I cannot guarantee it works properly so it may cause data loss. I don't recommend you using this tool to work with important files. **USE IT UNDER YOUR OWN RESPONSIBILITY**
+> **Disclaimer**: this tool has been developed as a personal experiment. I'm learning new technologies and I cannot guarantee it works properly so it may cause data loss. I don't recommend you using this tool to work with important files. **USE IT UNDER YOUR OWN RESPONSIBILITY**
 
 **Backuper** is a tool which allows to make an automatic backup of a folder content in another folder. Those are some use cases:
 - Make copies from a folder in your computer to an external drive.
